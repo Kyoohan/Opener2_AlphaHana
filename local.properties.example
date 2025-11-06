@@ -1,0 +1,17 @@
+## This file is a template for local.properties
+## Copy this file to local.properties and fill in your API keys
+## 
+## local.properties is already in .gitignore, so it will not be committed to version control
+
+# Location of the SDK (required by Android Studio)
+sdk.dir=C\:\\Users\\YourUsername\\AppData\\Local\\Android\\Sdk
+
+# API Keys (optional - you can also set these in the app settings)
+# Uncomment and fill in your API keys if you want to use BuildConfig
+# gemini.api.key=YOUR_GEMINI_API_KEY_HERE
+
+# Vertex API Key (optional)
+# 학습된 딥링크 생성 모델을 사용하기 위한 Vertex API 키
+# 설정하지 않으면 기본값(공유된 학습 모델)이 사용됩니다
+# vertex.api.key=YOUR_VERTEX_API_KEY_HERE
+
