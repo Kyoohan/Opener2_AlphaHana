@@ -5,9 +5,21 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Accessibility
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.Slider
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,6 +42,7 @@ fun FontSizeSettingsDialog(
 ) {
     var fontSizeScale by remember { mutableFloatStateOf(currentFontSizeScale) }
     var highContrastMode by remember { mutableStateOf(currentHighContrastMode) }
+    var accentPreset by remember { mutableStateOf(currentAccentColorPreset) }
     val context = LocalContext.current
     val actualFontSizeScale = fontSizeScale  // Dialog에서 사용할 폰트 스케일
     
@@ -68,7 +81,6 @@ fun FontSizeSettingsDialog(
                 }
                 
                 HorizontalDivider(color = SecondaryTextColor.copy(alpha = 0.3f))
-                
                 // 글자 크기 설정
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -139,6 +151,68 @@ fun FontSizeSettingsDialog(
                             onHighContrastModeChange(it)
                         }
                     )
+                }
+                
+                HorizontalDivider(color = SecondaryTextColor.copy(alpha = 0.3f))
+                
+                // 포인트 색상 선택
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = "포인트 색상",
+                        fontSize = (16 * actualFontSizeScale).sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextColor
+                    )
+                    
+                    val accentOptions = listOf(
+                        0 to Pair("따뜻한 톤", AccentWarmStart),
+                        1 to Pair("차가운 톤", AccentCoolStart),
+                        2 to Pair("보라 톤", AccentPurpleStart),
+                        3 to Pair("초록 톤", AccentGreenStart)
+                    )
+                    
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        accentOptions.chunked(2).forEach { rowItems ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                rowItems.forEach { (index, data) ->
+                                    val (label, color) = data
+                                    val isSelected = accentPreset == index
+                                    Button(
+                                        onClick = {
+                                            accentPreset = index
+                                            onAccentColorChange(index)
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (highContrastMode) {
+                                                if (isSelected) HighContrastBorderColor else SurfaceColor
+                                            } else {
+                                                if (isSelected) color else SurfaceColor
+                                            },
+                                            contentColor = if (highContrastMode && isSelected) {
+                                                androidx.compose.ui.graphics.Color.Black
+                                            } else if (isSelected) {
+                                                androidx.compose.ui.graphics.Color.Black
+                                            } else {
+                                                SecondaryTextColor
+                                            }
+                                        ),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            fontSize = (14 * actualFontSizeScale).sp
+                                        )
+                                    }
+                                }
+                                if (rowItems.size == 1) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
+                        }
+                    }
                 }
                 
                 HorizontalDivider(color = SecondaryTextColor.copy(alpha = 0.3f))

@@ -54,7 +54,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     // Vertex AI tuned model API key - 학습된 딥링크 생성 모델 접근용
     // BuildConfig를 통해 기본값 제공 (공유된 학습 모델 사용 가능)
     // local.properties에서 vertex.api.key를 설정하면 해당 값 사용, 없으면 기본값 사용
-    private val _vertexApiKey = MutableStateFlow(BuildConfig.VERTEX_API_KEY)
+    private val _vertexApiKey = MutableStateFlow(
+        preferencesManager.getVertexApiKey() ?: BuildConfig.VERTEX_API_KEY
+    )
     val vertexApiKey: StateFlow<String> = _vertexApiKey.asStateFlow()
     
     private val _currentMessage = MutableStateFlow("")
@@ -126,6 +128,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val _showMoreMenu = MutableStateFlow(false)
     val showMoreMenu: StateFlow<Boolean> = _showMoreMenu.asStateFlow()
     
+    private val _showApiKeyDialog = MutableStateFlow(false)
+    val showApiKeyDialog: StateFlow<Boolean> = _showApiKeyDialog.asStateFlow()
+    
     private val _fontSizeScale = MutableStateFlow(preferencesManager.getFontSizeScale())
     val fontSizeScale: StateFlow<Float> = _fontSizeScale.asStateFlow()
     
@@ -143,6 +148,15 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     fun updateApiKey(apiKey: String) {
         _apiKey.value = apiKey
         preferencesManager.saveApiKey(apiKey)
+    }
+    
+    fun updateVertexApiKey(apiKey: String) {
+        _vertexApiKey.value = apiKey.ifBlank { BuildConfig.VERTEX_API_KEY }
+        if (apiKey.isBlank()) {
+            preferencesManager.clearVertexApiKey()
+        } else {
+            preferencesManager.saveVertexApiKey(apiKey)
+        }
     }
     
     init {
@@ -384,6 +398,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     fun clearApiKey() {
         _apiKey.value = ""
         preferencesManager.clearApiKey()
+    }
+    
+    fun clearVertexApiKey() {
+        _vertexApiKey.value = BuildConfig.VERTEX_API_KEY
+        preferencesManager.clearVertexApiKey()
     }
     
     /**
@@ -967,6 +986,14 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun dismissSettings() {
         _showSettings.value = false
+    }
+    
+    fun showApiKeyDialog() {
+        _showApiKeyDialog.value = true
+    }
+    
+    fun dismissApiKeyDialog() {
+        _showApiKeyDialog.value = false
     }
     
     fun toggleMoreMenu() {
