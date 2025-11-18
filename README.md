@@ -1,16 +1,206 @@
-# 열림이 (Opener2) - 사회적 약자를 위한 AI 어시스턴트
+# 열림이 (Opener2) - 세상을 여는 AI 동반자
 
-열림이는 사회적 약자를 도와주는 AI 채팅 앱입니다. ChatGPT나 Gemini와 유사한 인터페이스를 제공하며, Google Cloud Service API를 통해 AI 응답을 받아옵니다.
+<div align="center">
 
-## 주요 기능
+**사회적 약자의 정보 접근성을 높이는 AI 기반 디지털 도우미 앱**
 
-- 🤖 **AI 채팅**: Google Cloud Service API를 통한 실시간 AI 응답
-- 🎨 **모던 UI**: ChatGPT 스타일의 다크 테마 인터페이스
-- 📝 **마크다운 지원**: AI 응답의 마크다운 형식 렌더링
-- 💾 **API 키 저장**: 안전한 API 키 저장 및 관리
-- 📱 **반응형 디자인**: 다양한 화면 크기에 최적화
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-blue.svg)](https://kotlinlang.org/)
+[![Android](https://img.shields.io/badge/Android-31+-green.svg)](https://developer.android.com/)
+[![Compose](https://img.shields.io/badge/Jetpack%20Compose-1.6.0-orange.svg)](https://developer.android.com/jetpack/compose)
 
-## 설치 및 설정
+</div>
+
+---
+
+## 📖 프로젝트 소개
+
+**열림이**는 노인, 시각장애인, 환자와 같은 사회적 약자들이 디지털 기기 사용에 어려움을 느낀다는 문제 의식을 가지고, **사회적 약자의 정보 접근성 향상**을 목표로 개발된 Android 앱입니다.
+
+하나의 앱으로 AI가 사회적 약자들의 디지털 기기 사용을 돕는 **통합 지원 플랫폼**을 제공합니다.
+
+### 프로젝트 목표
+
+- 🎯 **디지털 격차 해소**: 사회적 약자가 디지털 기술 활용에서 소외되지 않도록 지원
+- 🤝 **디지털 자립성 강화**: 타인의 도움에만 의존하지 않고 스스로 디지털 기기를 활용할 수 있는 능력 제공
+- 🌍 **포용적 기술 생태계 구축**: 누구나 기술의 도움을 받을 수 있는 환경 조성
+
+---
+
+## 🎯 문제 정의
+
+사회적 약자들은 사회적, 신체적 조건으로 인해 일상 생활에서 불편을 겪는 상황에 놓여 있습니다. 특히 기술 발전에 따라 **디지털 격차**가 심화되면서 다음과 같은 어려움을 겪고 있습니다:
+
+- **고령층**: 디지털 기기에 익숙하지 않고, 시력과 운동 능력 감퇴로 앱 설치 및 사용 어려움
+- **저시력자**: 감퇴된 시력으로 비장애인 중심의 디지털 기기를 온전히 활용하기 어려움
+- **거동 불편 환자**: 텍스트 입력과 화면 조작 시 어려움
+
+이러한 문제를 해결하기 위해 **AI 기술을 활용한 통합 지원 방안**을 모색하여 열림이 프로젝트를 진행하였습니다.
+
+---
+
+## ✨ 주요 기능
+
+### 1. 🤖 기본 AI 및 검색 증강 생성 (RAG)
+
+디지털 취약계층이 어떤 앱을 통해 검색해야 하는지조차 어려움을 겪거나, 원하는 정보를 얻기 위해 명확한 검색어를 입력하기 힘든 상황을 해결합니다.
+
+- **기본 AI**: Gemini 2.5 Flash API (Google AI Studio)
+- **검색 증강 생성**: Serper API (Google Search Grounding)
+- **특징**: 모호한 명령도 이해하고 최신 정보가 반영된 정확한 답변 제공
+
+**예시**: "2025 월드시리즈 우승 팀은 어디야?" → 최신 정보 반영된 정확한 답변
+
+---
+
+### 2. 🗺️ 길찾기 기능
+
+노년층 이용자들이 어떤 앱으로 길을 찾아야 하는지 알지 못하거나, 지도 앱 내의 복잡한 버튼과 메뉴로 인한 어려움을 해결합니다.
+
+- **AI 기반 의도 인식**: Vertex AI 튜닝 모델 (Gemini 2.5 Flash Lite)
+- **자동 정보 추출**: 출발지, 목적지, 이동 수단을 명령어에서 자동 추출
+- **딥링크 생성**: Google Cloud Run 백엔드 서버를 통한 네이버 지도 딥링크 생성
+- **정확도**: 약 300개의 학습 데이터로 1에 가까운 정확도 달성
+
+**예시**: "하나고등학교에서 서울역으로 차로 가고 싶어" → 네이버 지도 앱 자동 연동
+
+---
+
+### 3. 💬 카카오톡 전송 기능
+
+많은 디지털 취약층이 카카오톡을 설치하거나 사용하는 방법을 잘 모르거나, 특히 노년층이 자녀에게 사진을 보내고 싶어도 전송 방법을 몰라 어려움을 겪는 문제를 해결합니다.
+
+- **카카오 SDK 연동**: 카카오 로그인 및 친구 목록 표시
+- **의도 자동 감지**: AI가 전송 의도, 대상, 메시지/사진 정보 자동 추출
+- **간편 전송**: 메시지와 사진을 손쉽게 전송
+
+**예시**: "카카오톡으로 안녕이라고 보내줘" → 친구 선택 후 자동 전송
+
+---
+
+### 4. 📸 이미지 분석 및 공유 기능
+
+키오스크나 앱 사용이 어려운 상황에서도 사진을 찍어 물어보면 AI가 이미지를 분석해 문제를 해결합니다.
+
+- **이미지 인식**: Gemini API를 통한 이미지 분석
+- **맞춤형 답변**: 특정 사물 인식 및 필요한 정보 제공
+- **공유 연동**: Android 자체 공유 기능과 연동하여 다른 사람이나 앱으로 손쉽게 전송
+
+**예시**: 사진을 보내면 AI가 이미지를 분석하여 필요한 정보 제공
+
+---
+
+### 5. 📱 앱 설치 지원 기능
+
+디지털 기기에 익숙하지 않은 노년층이 원하는 앱을 직접 검색하고 설치하는 과정에서 겪는 어려움을 해결합니다.
+
+- **자연어 명령**: "네이버 설치해줘"와 같은 간단한 명령만으로 앱 설치
+- **패키지명 매칭**: 앱 이름과 패키지명 자동 매칭
+- **다양한 앱 지원**: 네이버, 유튜브, 파파고 등 일반 앱부터 닥터나우, 정부24 같은 사회적 약자에게 실질적으로 도움이 되는 앱까지 폭넓게 지원
+
+**지원 앱**: 네이버, 카카오톡, 유튜브, 파파고, 닥터나우, 정부24, 배달의민족, 쿠팡 등 60개 이상
+
+---
+
+### 6. ♿ 접근성 향상 설정
+
+국제 웹 콘텐츠 접근성 지침(WCAG, Web Content Accessibility Guidelines) **AAA 등급**을 준수하여 설계되었습니다.
+
+- **고대비 모드**: 저시력자의 가독성을 높이는 고대비 색상 제공
+- **폰트 크기 조절**: 최대 2배까지 확대 설정 가능
+- **화면 읽기 기능**: TalkBack 활성화 지원
+- **음성 인식**: 타자 입력 없이 앱 조작 가능
+
+**WCAG AAA 준수**: 색 대비, 글자 크기, 음성 지원, 입력 접근성 등 다양한 기준에서 정보 접근성 보장
+
+---
+
+## 🛠️ 기술 스택
+
+### 프론트엔드
+- **언어**: Kotlin
+- **UI 프레임워크**: Jetpack Compose
+- **아키텍처**: MVVM (Model-View-ViewModel)
+- **상태 관리**: StateFlow, MutableStateFlow
+- **의존성 주입**: Manual DI
+
+### 백엔드 & AI
+- **AI 모델**: 
+  - Gemini 2.5 Flash (Google AI Studio) - 기본 AI
+  - Vertex AI 튜닝 모델 (Gemini 2.5 Flash Lite) - 길찾기 의도 분석
+- **검색 API**: Serper API (Google Search Grounding)
+- **백엔드 서버**: Google Cloud Run (네이버 지도 딥링크 생성)
+- **네트워킹**: Retrofit + OkHttp
+
+### 외부 서비스 연동
+- **카카오 SDK**: 카카오톡 메시지 전송 및 친구 목록
+- **네이버 지도**: 딥링크를 통한 길찾기 연동
+- **Google Play Store**: 앱 설치 지원
+
+### 데이터 저장
+- **로컬 저장소**: SharedPreferences (API 키, 사용자 설정)
+
+---
+
+## 📁 프로젝트 구조
+
+```
+app/src/main/java/com/kyoohan/opener2/
+├── data/                          # 데이터 모델
+│   ├── ChatMessage.kt            # 채팅 메시지 모델
+│   ├── ChatSession.kt            # 채팅 세션 모델
+│   ├── GeminiApiModels.kt        # Gemini API 요청/응답 모델
+│   ├── MapApiModels.kt           # 지도 API 요청/응답 모델
+│   └── SerperApiModels.kt        # 검색 API 요청/응답 모델
+│
+├── network/                       # 네트워킹
+│   ├── GeminiApiService.kt       # Gemini API 서비스
+│   ├── VertexTunedApiService.kt  # Vertex AI 튜닝 모델 서비스
+│   ├── SerperApiService.kt       # 검색 API 서비스
+│   ├── MapApiService.kt          # 지도 API 서비스 (Cloud Run)
+│   └── NetworkModule.kt          # 네트워크 설정
+│
+├── repository/                    # 데이터 저장소
+│   └── ChatRepository.kt         # 채팅 데이터 관리
+│
+├── viewmodel/                     # 뷰모델
+│   ├── ChatViewModel.kt          # 채팅 뷰모델
+│   └── ResponseHandlerViewModel.kt # 응답 처리 뷰모델
+│
+├── ui/                           # UI 컴포넌트
+│   ├── components/               # 재사용 가능한 컴포넌트
+│   │   ├── ChatBubble.kt        # 채팅 버블
+│   │   ├── MessageInput.kt      # 메시지 입력
+│   │   ├── MapDialog.kt         # 지도 다이얼로그
+│   │   ├── KakaoDialog.kt       # 카카오톡 다이얼로그
+│   │   ├── FriendPickerDialog.kt # 친구 선택 다이얼로그
+│   │   ├── ImagePickerDialog.kt  # 이미지 선택 다이얼로그
+│   │   ├── WelcomeScreen.kt     # 환영 화면
+│   │   └── ...
+│   ├── screens/                  # 화면 컴포넌트
+│   │   └── ChatScreen.kt        # 메인 채팅 화면
+│   └── theme/                    # 테마 설정
+│       ├── Color.kt             # 색상 정의 (고대비 모드 포함)
+│       ├── Theme.kt             # 테마 설정
+│       └── Type.kt              # 타이포그래피
+│
+├── utils/                         # 유틸리티
+│   ├── PreferencesManager.kt     # 설정 저장 관리
+│   ├── AccessibilityUtils.kt     # 접근성 유틸리티
+│   ├── MapUtils.kt               # 지도 관련 유틸리티
+│   ├── KakaoUtils.kt             # 카카오 SDK 유틸리티
+│   ├── AppPackageDatabase.kt     # 앱 패키지명 데이터베이스
+│   ├── IntentDetector.kt         # 의도 감지
+│   ├── ResponseHandler.kt        # 응답 처리
+│   ├── ShareUtils.kt             # 공유 유틸리티
+│   └── SpeechToTextUtils.kt      # 음성 인식 유틸리티
+│
+├── KakaoApplication.kt           # 카카오 SDK 초기화
+└── MainActivity.kt               # 메인 액티비티
+```
+
+---
+
+## 🚀 설치 및 설정
 
 ### 1. 프로젝트 클론
 ```bash
@@ -18,132 +208,176 @@ git clone <repository-url>
 cd Opener2
 ```
 
-### 2. Google Cloud Service API 키 발급
-1. [Google Cloud Console](https://console.cloud.google.com/)에 접속
-2. 새 프로젝트 생성 또는 기존 프로젝트 선택
-3. "APIs & Services" > "Library"에서 "Generative Language API" 활성화
-4. "APIs & Services" > "Credentials"에서 API 키 생성
-5. API 키를 안전하게 보관
+### 2. API 키 발급
 
-### 3. 앱 실행
+#### Gemini API 키
+1. [Google AI Studio](https://aistudio.google.com/)에 접속
+2. API 키 생성
+3. 앱 내 설정에서 API 키 입력
+
+#### Vertex AI 튜닝 모델 키 (선택사항)
+- 길찾기 기능을 사용하려면 Vertex AI 튜닝 모델 API 키 필요
+- [Google Cloud Console](https://console.cloud.google.com/)에서 Vertex AI API 활성화
+
+#### Serper API 키 (선택사항)
+- 검색 증강 생성 기능을 사용하려면 Serper API 키 필요
+- [Serper.dev](https://serper.dev/)에서 API 키 발급
+
+#### 카카오 SDK 키
+1. [Kakao Developers](https://developers.kakao.com/)에 접속
+2. 앱 생성 및 REST API 키 발급
+3. `app/src/main/res/values/strings.xml`에 카카오 SDK 키 설정
+
+### 3. Android Studio에서 실행
 1. Android Studio에서 프로젝트 열기
-2. API 키 설정:
-   - 앱 실행 시 나타나는 API 키 입력 다이얼로그에 발급받은 API 키 입력
-   - 또는 앱 내 설정에서 API 키 변경 가능
+2. 최소 SDK: Android 31 (Android 12+)
+3. 빌드 및 실행
 
-## 사용법
+---
+
+## 📖 사용법
 
 ### 기본 사용
-1. 앱 실행 후 API 키 입력
-2. 하단 입력창에 질문이나 요청 입력
+1. 앱 실행 후 API 키 입력 (처음 실행 시)
+2. 하단 입력창에 질문이나 요청 입력 (텍스트 또는 음성)
 3. 전송 버튼 클릭 또는 Enter 키로 메시지 전송
-4. AI 응답 대기 및 확인
+4. AI 응답 확인 및 액션 수행
 
-### 추천 질문
-- 📍 **지도 길찾기**: "지도 길찾기를 도와드릴게요. 어디로 가고 싶으신가요?"
-- 💊 **주변 약국 찾기**: "주변 약국을 찾아드릴게요. 현재 위치를 알려주세요."
-- 🧾 **공과금 확인하기**: "공과금 확인을 도와드릴게요. 어떤 공과금을 확인하고 싶으신가요?"
+### 기능별 사용 예시
 
-## 기술 스택
+#### 🤖 AI 질의응답
+- "오늘 날씨가 어때?"
+- "2025 월드시리즈 우승 팀은 어디야?"
+- "파파고가 뭐야?"
 
-- **언어**: Kotlin
-- **UI**: Jetpack Compose
-- **아키텍처**: MVVM (Model-View-ViewModel)
-- **네트워킹**: Retrofit + OkHttp
-- **의존성 주입**: Manual DI
-- **상태 관리**: StateFlow
-- **데이터 저장**: SharedPreferences
+#### 🗺️ 길찾기
+- "서울역까지 지하철로 가고 싶어"
+- "하나고등학교에서 서울역으로 차로 가고 싶어"
+- "강남역 2호선으로 가는 방법 알려줘"
 
-## 프로젝트 구조
+#### 💬 카카오톡 전송
+- "카카오톡으로 안녕이라고 보내줘"
+- "카카오톡으로 아들에게 사진 보내줘"
+- "카카오톡에 오늘 날씨 좋다고 전달해줘"
 
-```
-app/src/main/java/com/kyoohan/opener2/
-├── data/                    # 데이터 모델
-│   ├── ChatMessage.kt      # 채팅 메시지 모델
-│   └── GeminiApiModels.kt  # API 응답 모델
-├── network/                 # 네트워킹
-│   ├── GeminiApiService.kt # API 서비스 인터페이스
-│   └── NetworkModule.kt    # 네트워크 설정
-├── repository/              # 데이터 저장소
-│   └── ChatRepository.kt   # 채팅 데이터 관리
-├── ui/                      # UI 컴포넌트
-│   ├── components/          # 재사용 가능한 컴포넌트
-│   ├── screens/            # 화면 컴포넌트
-│   └── theme/              # 테마 설정
-├── utils/                   # 유틸리티
-│   └── PreferencesManager.kt # 설정 저장
-├── viewmodel/               # 뷰모델
-│   └── ChatViewModel.kt    # 채팅 뷰모델
-└── MainActivity.kt         # 메인 액티비티
-```
+#### 📸 이미지 분석
+- 사진을 첨부하고 "이게 뭐야?"라고 질문
+- 사진을 첨부하고 "이거 공유해줘"라고 요청
 
-## 주요 컴포넌트
+#### 📱 앱 설치
+- "네이버 설치해줘"
+- "유튜브 설치해줘"
+- "정부24 설치해줘"
 
-### ChatScreen
-메인 채팅 화면으로 다음 기능을 제공합니다:
-- 환영 화면 및 추천 질문
-- 채팅 메시지 목록
-- 메시지 입력 및 전송
-- 로딩 상태 표시
+#### ♿ 접근성 설정
+1. 우측 상단 설정 버튼 클릭
+2. 고대비 모드, 폰트 크기, TalkBack 등 설정 조절
 
-### ChatBubble
-채팅 메시지를 표시하는 컴포넌트:
-- 사용자/AI 메시지 구분
-- 마크다운 렌더링 지원
-- 반응형 디자인
+---
 
-### MarkdownText
-AI 응답의 마크다운을 렌더링하는 컴포넌트:
-- 제목 (H1, H2, H3)
-- 굵은 글씨, 기울임 글씨
-- 인라인 코드
-- 링크
-- 목록
+## 🎨 앱 아이콘
 
-## API 사용량 및 비용
+열림이 앱의 아이콘은 **문이 열리며 빛이 들어오는 순간**을 형상화한 것입니다.
 
-Google Cloud Service API는 사용량에 따라 비용이 발생할 수 있습니다. 자세한 가격 정보는 [Google Cloud Pricing](https://cloud.google.com/pricing)을 참조하세요.
+- **아치형 문**: 접근성과 포용성을 상징
+- **빛**: 열림이의 안내와 도움을 의미
+- **밝은 초록색**: 따뜻하고 밝은 이미지 전달
+- **간결한 디자인**: 직관적이고 시각적으로 임팩트 있는 아이콘
 
-## 보안 고려사항
+---
 
-- API 키는 SharedPreferences에 암호화되지 않은 상태로 저장됩니다
-- 프로덕션 환경에서는 더 안전한 저장 방법을 고려해야 합니다
-- API 키는 절대 공개 저장소에 커밋하지 마세요
+## ⚠️ 한계점 및 개선 방안
 
-## 라이선스
+### 현재 한계점
+
+1. **제한된 앱 지원 범위**
+   - 현재 네이버 지도, 카카오톡, 플레이스토어 중심으로 기능 구현
+   - AI가 모든 앱을 다루는 것은 어려움
+
+2. **플랫폼 제한**
+   - 현재 Android 전용 (iOS 버전 미지원)
+
+3. **음성 인식 한계**
+   - 비교적 명확한 발음을 중심으로 학습
+   - 어눌한 발음이나 지역 방언 인식률이 낮을 수 있음
+
+4. **AI 튜닝 모델 데이터 부족**
+   - 길찾기 기능에 약 300개의 데이터만 사용
+   - 더 다양한 시나리오 학습 필요
+
+### 향후 개선 계획
+
+- ✅ 지원 앱 범위 점진적 확대 및 사용자 피드백 반영
+- ✅ iOS 버전 개발 진행
+- ✅ 다양한 음성 데이터 추가 학습 및 사용자 맞춤 음성 프로필 기능 도입
+- ✅ 더 많은 학습 데이터로 모델 정확도 향상
+- ✅ 사용자 피드백 수집 및 기능 개선
+
+---
+
+## 🤝 윤리적 고려사항
+
+### 1. 개인정보 보호
+- 현재는 사용자 정보를 저장하지 않음
+- 향후 맞춤형 기능 제공 시, 명확한 개인정보 보호 체계 마련 예정
+
+### 2. AI 환각 문제
+- RAG 방식의 검색 기반 응답 적용
+- AI 자동 실행 대신 사용자가 항상 최종 확인하도록 설계
+
+### 3. AI 편향 문제
+- 사회적 약자 데이터 추가 학습 계획
+- 다양한 사용 환경 반영 예정
+
+### 4. AI 과의존 방지
+- 열림이는 문제를 대신 해결하는 **대체 AI**가 아닌, 사용자가 스스로 수행할 수 있도록 지원하는 **보조 AI**로 설계
+- 장기적으로 사용자가 열림이의 도움을 점차 줄이고 스스로 디지털 서비스를 활용할 수 있도록 유도하는 방향으로 발전
+
+---
+
+## 🌟 기대효과 및 사회적 기여
+
+### 기대효과
+
+1. **정보 접근성 향상**: 사회적 약자의 정보 접근성을 실질적으로 높여 디지털 기술 활용에서 소외되지 않도록 지원
+
+2. **디지털 자립성 강화**: 타인의 도움에만 의존하지 않고, 열림이와 함께 스스로 디지털 기기를 활용할 수 있는 능력 제공
+
+3. **포용적 기술 생태계 구축**: 누구나 기술의 도움을 받을 수 있는 환경 조성
+
+4. **사회적·경제적 격차 완화**: 디지털 접근성을 통한 평등한 참여 기회 확대
+
+### 사회적 기여
+
+열림이는 단순한 편의성 제공을 넘어 **혁신적인 AI 기술과 접근성 설계를 통해 사회적 포용성을 실현하는 플랫폼**으로서, 사회적 약자의 삶의 질을 높이고 보다 공평한 디지털 사회 구현에 기여합니다.
+
+---
+
+## 📝 라이선스
 
 이 프로젝트는 MIT 라이선스 하에 배포됩니다.
 
-## 기여하기
+---
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## 👥 팀 소개
 
-## 문의
+**팀 알파하나 (Alpha-Hana)**
+
+- 팀명 의미: 처음, 시작, 그리고 최고를 뜻하는 그리스어 '알파'와 한글 '하나'를 결합
+- 역할 분담: AI 모델링, 프로그래밍, 디자인
+
+---
+
+## 📧 문의
 
 프로젝트에 대한 문의사항이 있으시면 이슈를 생성해 주세요.
 
+---
 
+<div align="center">
 
+**열림이와 함께라면 당신도 디지털 마스터! 🌟**
 
+세상을 여는 AI 동반자, **열림이**
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+</div>
