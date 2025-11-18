@@ -7,6 +7,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object NetworkModule {
+    // Vertex AI 엔드포인트 (Gemini 2.5 Flash base model용)
+    private const val VERTEX_AI_BASE_URL = "https://us-central1-aiplatform.googleapis.com/"
     private const val GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/"
     private const val SERPER_BASE_URL = "https://google.serper.dev/"
     
@@ -21,6 +23,13 @@ object NetworkModule {
         .writeTimeout(30, TimeUnit.SECONDS)
         .build()
     
+    // Vertex AI용 Retrofit (Gemini 2.5 Flash base model)
+    private val vertexAiRetrofit = Retrofit.Builder()
+        .baseUrl(VERTEX_AI_BASE_URL)
+        .client(okHttpClient)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+    
     private val geminiRetrofit = Retrofit.Builder()
         .baseUrl(GEMINI_BASE_URL)
         .client(okHttpClient)
@@ -33,7 +42,7 @@ object NetworkModule {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
     
-    val geminiApiService: GeminiApiService = geminiRetrofit.create(GeminiApiService::class.java)
+    val geminiApiService: GeminiApiService = vertexAiRetrofit.create(GeminiApiService::class.java)
     val vertexTunedApiService: VertexTunedApiService = geminiRetrofit.create(VertexTunedApiService::class.java)
     val serperApiService: SerperApiService = serperRetrofit.create(SerperApiService::class.java)
 }

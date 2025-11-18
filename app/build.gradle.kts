@@ -1,17 +1,7 @@
-import java.io.FileInputStream
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-}
-
-// local.properties에서 API 키 읽기
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(FileInputStream(localPropertiesFile))
 }
 
 android {
@@ -26,22 +16,6 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        
-        // local.properties에서 API 키 읽기 (선택사항)
-        // 주의: 이 방법은 빌드 시점에 키가 포함되므로 완전히 안전하지 않습니다.
-        // 프로덕션에서는 서버를 통한 인증을 권장합니다.
-        buildConfigField(
-            "String",
-            "GEMINI_API_KEY",
-            "\"${localProperties.getProperty("gemini.api.key", "")}\""
-        )
-        // Vertex AI tuned model API key - 학습된 딥링크 생성 모델 접근용
-        // local.properties에 설정하지 않으면 기본값 사용 (공유된 학습 모델)
-        buildConfigField(
-            "String",
-            "VERTEX_API_KEY",
-            "\"${localProperties.getProperty("vertex.api.key", "AQ.Ab8RN6KTZarJqnZftcLqtI_vFmEEP4iBw_QebyQoT77rGMh4Zw")}\""
-        )
     }
 
     buildTypes {
@@ -62,7 +36,6 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = true
     }
 }
 

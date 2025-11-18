@@ -201,7 +201,22 @@ class ChatRepository {
             return Result.success(ResponseCodec.encode(ChatResponse.Text(aiResponse)))
         }
         
-        return Result.failure(Exception("API 요청 실패: ${response.code()}"))
+        // 에러 응답 본문 파싱
+        val errorBody = response.errorBody()?.string()
+        val errorMessage = if (errorBody != null) {
+            try {
+                val gson = com.google.gson.Gson()
+                val error = gson.fromJson(errorBody, GeminiError::class.java)
+                error.error.message
+            } catch (e: Exception) {
+                "API 요청 실패: ${response.code()}"
+            }
+        } else {
+            "API 요청 실패: ${response.code()}"
+        }
+        
+        println("ERROR: API 요청 실패 - Code: ${response.code()}, Message: $errorMessage")
+        return Result.failure(Exception(errorMessage))
     }
     
     /**
@@ -224,14 +239,15 @@ class ChatRepository {
                 """.trimIndent()))
             )
         } else {
-            // 일반 대화
+            // 일반 대화 (RAG 활성화)
             SystemInstruction(
                 parts = listOf(Part(text = """
                     답변 작성 규칙:
                     1. 일반적인 질문은 6문장 이내로 간결하게 답변하세요
                     2. 순위/목록/비교표는 완전하게 제공하세요
-                    3. 실시간 정보가 필요하면 Google 검색을 활용하세요
-                    4. 불필요한 인사말은 생략하세요
+                    3. 실시간 정보, 최신 뉴스, 날씨, 주가, 이벤트 등이 필요하면 반드시 Google 검색을 활용하세요
+                    4. 검색 결과를 바탕으로 정확하고 최신 정보를 제공하세요
+                    5. 불필요한 인사말은 생략하세요
                 """.trimIndent()))
             )
         }
@@ -248,15 +264,73 @@ class ChatRepository {
         
         val response = apiService.generateContent(apiKey, request)
         if (response.isSuccessful) {
-            val aiResponse = response.body()?.candidates?.firstOrNull()
-                ?.content?.parts?.firstOrNull()?.text
+            val candidate = response.body()?.candidates?.firstOrNull()
+            val aiResponse = candidate?.content?.parts?.firstOrNull()?.text
                 ?: "응답을 받을 수 없습니다."
             
-            addAIMessage(aiResponse)
-            return Result.success(ResponseCodec.encode(ChatResponse.Text(aiResponse)))
+            // RAG: Grounding metadata에서 검색 결과 추출 및 포함
+            val groundingMetadata = candidate?.groundingMetadata
+            val enhancedResponse = if (groundingMetadata != null) {
+                buildResponseWithSources(aiResponse, groundingMetadata)
+            } else {
+                aiResponse
+            }
+            
+            addAIMessage(enhancedResponse)
+            return Result.success(ResponseCodec.encode(ChatResponse.Text(enhancedResponse)))
         }
         
-        return Result.failure(Exception("API 요청 실패: ${response.code()}"))
+        // 에러 응답 본문 파싱
+        val errorBody = response.errorBody()?.string()
+        val errorMessage = if (errorBody != null) {
+            try {
+                val gson = com.google.gson.Gson()
+                val error = gson.fromJson(errorBody, GeminiError::class.java)
+                error.error.message
+            } catch (e: Exception) {
+                "API 요청 실패: ${response.code()}"
+            }
+        } else {
+            "API 요청 실패: ${response.code()}"
+        }
+        
+        println("ERROR: API 요청 실패 - Code: ${response.code()}, Message: $errorMessage")
+        println("ERROR: 사용된 API 키: ${apiKey.take(10)}...")
+        return Result.failure(Exception(errorMessage))
+    }
+    
+    /**
+     * RAG: Grounding metadata를 사용하여 응답에 출처 정보 추가
+     */
+    private fun buildResponseWithSources(
+        response: String,
+        groundingMetadata: GroundingMetadata
+    ): String {
+        val sources = mutableListOf<String>()
+        
+        // 검색 쿼리 로그
+        groundingMetadata.webSearchQueries?.forEach { query ->
+            println("🔍 RAG 검색 쿼리: $query")
+        }
+        
+        // 검색 결과에서 출처 추출
+        groundingMetadata.groundingChunks?.forEachIndexed { index, chunk ->
+            chunk.web?.let { web ->
+                val title = web.title ?: "출처 ${index + 1}"
+                val uri = web.uri ?: ""
+                if (uri.isNotEmpty()) {
+                    sources.add("[$title]($uri)")
+                }
+            }
+        }
+        
+        // 출처가 있으면 응답에 추가
+        return if (sources.isNotEmpty()) {
+            val sourcesText = "\n\n**참고 출처:**\n${sources.joinToString("\n")}"
+            response + sourcesText
+        } else {
+            response
+        }
     }
     
     /**

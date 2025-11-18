@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -28,7 +29,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import com.kyoohan.opener2.ui.components.ApiKeysDialog
 import com.kyoohan.opener2.ui.components.ChatBubble
 import com.kyoohan.opener2.ui.components.LoadingBubble
 import com.kyoohan.opener2.ui.components.MapDialog
@@ -45,9 +45,8 @@ import com.kyoohan.opener2.viewmodel.ChatViewModel
 import kotlinx.coroutines.launch
 import android.net.Uri
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.VpnKey
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 
@@ -81,21 +80,12 @@ fun ChatScreen(
     val actualFontSizeScale by viewModel.actualFontSizeScale.collectAsState()
     val highContrastMode by viewModel.highContrastMode.collectAsState()
     val accentColorPreset by viewModel.accentColorPreset.collectAsState()
-    val apiKey by viewModel.apiKey.collectAsState()
-    val vertexApiKey by viewModel.vertexApiKey.collectAsState()
-    val showApiKeyDialog by viewModel.showApiKeyDialog.collectAsState()
 
     val listState = rememberLazyListState()
     val keyboard = LocalSoftwareKeyboardController.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
-    val hasAiResponse = messages.any { !it.isUser }
-    val iconTint = if (highContrastMode)
-        com.kyoohan.opener2.ui.theme.HighContrastTextColor
-    else
-        com.kyoohan.opener2.ui.theme.TextColor
-    val keyIconTint = iconTint
     
     // 음성 인식 권한 요청 launcher
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -164,49 +154,43 @@ fun ChatScreen(
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 4.dp)
+                .statusBarsPadding(),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            if (hasAiResponse) {
-                IconButton(
-                    onClick = { viewModel.clearMessages() },
-                    modifier = Modifier.align(Alignment.CenterStart)
-                ) {
+               // 새로고침 버튼 (답변 화면에만 표시)
+               if (messages.isNotEmpty()) {
+                   IconButton(
+                       onClick = { viewModel.clearMessages() }
+                   ) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
-                        contentDescription = "새 대화 시작",
-                        tint = iconTint
+                        contentDescription = "새로고침",
+                        tint = if (highContrastMode) 
+                            com.kyoohan.opener2.ui.theme.HighContrastTextColor 
+                        else 
+                            com.kyoohan.opener2.ui.theme.TextColor
                     )
                 }
+            } else {
+                // 메시지가 없을 때는 공간만 차지 (설정 버튼이 오른쪽에 위치하도록)
+                Spacer(modifier = Modifier.width(48.dp))
             }
-
-            Row(
-                modifier = Modifier.align(Alignment.CenterEnd),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
+            
+            // 설정 버튼
+            IconButton(
+                onClick = { viewModel.showSettings() }
             ) {
-                IconButton(
-                    onClick = { viewModel.showApiKeyDialog() }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.VpnKey,
-                        contentDescription = "API 키 설정",
-                        tint = keyIconTint
-                    )
-                }
-
-                IconButton(
-                    onClick = { viewModel.showSettings() }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "설정",
-                        tint = iconTint
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "설정",
+                    tint = if (highContrastMode) 
+                        com.kyoohan.opener2.ui.theme.HighContrastTextColor 
+                    else 
+                        com.kyoohan.opener2.ui.theme.TextColor
+                )
             }
         }
 
@@ -416,18 +400,6 @@ fun ChatScreen(
             onHighContrastModeChange = { enabled -> viewModel.updateHighContrastMode(enabled) },
             onAccentColorChange = { preset -> viewModel.updateAccentColorPreset(preset) },
             onDismiss = { viewModel.dismissSettings() }
-        )
-    }
-    
-    if (showApiKeyDialog) {
-        ApiKeysDialog(
-            currentGeminiKey = apiKey,
-            currentVertexKey = vertexApiKey,
-            onGeminiKeySave = { key -> viewModel.updateApiKey(key) },
-            onGeminiKeyClear = { viewModel.clearApiKey() },
-            onVertexKeySave = { key -> viewModel.updateVertexApiKey(key) },
-            onVertexKeyClear = { viewModel.clearVertexApiKey() },
-            onDismiss = { viewModel.dismissApiKeyDialog() }
         )
     }
 }

@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.kyoohan.opener2.BuildConfig
 import com.kyoohan.opener2.data.ChatMessage
 import com.kyoohan.opener2.data.ChatSession
 import com.kyoohan.opener2.repository.ChatRepository
@@ -46,17 +45,12 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
     
-    // API 키는 SharedPreferences에서 로드하거나 사용자가 입력
-    // 하드코딩된 키는 제거되었습니다 - 보안을 위해 local.properties 또는 앱 내 설정에서 관리하세요
-    private val _apiKey = MutableStateFlow(preferencesManager.getApiKey() ?: "")
+    // Gemini 2.5 Flash base model API key
+    private val _apiKey = MutableStateFlow(preferencesManager.getApiKey() ?: "AQ.Ab8RN6KFYvOpCa3CF__lMVyDsTaK0ZCczY9hWHoPWcFOFTC-OQ")
     val apiKey: StateFlow<String> = _apiKey.asStateFlow()
     
-    // Vertex AI tuned model API key - 학습된 딥링크 생성 모델 접근용
-    // BuildConfig를 통해 기본값 제공 (공유된 학습 모델 사용 가능)
-    // local.properties에서 vertex.api.key를 설정하면 해당 값 사용, 없으면 기본값 사용
-    private val _vertexApiKey = MutableStateFlow(
-        preferencesManager.getVertexApiKey() ?: BuildConfig.VERTEX_API_KEY
-    )
+    // Vertex AI tuned model API key (네이버 지도 딥링크 생성용)
+    private val _vertexApiKey = MutableStateFlow("AQ.Ab8RN6KTZarJqnZftcLqtI_vFmEEP4iBw_QebyQoT77rGMh4Zw")
     val vertexApiKey: StateFlow<String> = _vertexApiKey.asStateFlow()
     
     private val _currentMessage = MutableStateFlow("")
@@ -128,9 +122,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val _showMoreMenu = MutableStateFlow(false)
     val showMoreMenu: StateFlow<Boolean> = _showMoreMenu.asStateFlow()
     
-    private val _showApiKeyDialog = MutableStateFlow(false)
-    val showApiKeyDialog: StateFlow<Boolean> = _showApiKeyDialog.asStateFlow()
-    
     private val _fontSizeScale = MutableStateFlow(preferencesManager.getFontSizeScale())
     val fontSizeScale: StateFlow<Float> = _fontSizeScale.asStateFlow()
     
@@ -148,15 +139,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     fun updateApiKey(apiKey: String) {
         _apiKey.value = apiKey
         preferencesManager.saveApiKey(apiKey)
-    }
-    
-    fun updateVertexApiKey(apiKey: String) {
-        _vertexApiKey.value = apiKey.ifBlank { BuildConfig.VERTEX_API_KEY }
-        if (apiKey.isBlank()) {
-            preferencesManager.clearVertexApiKey()
-        } else {
-            preferencesManager.saveVertexApiKey(apiKey)
-        }
     }
     
     init {
@@ -395,14 +377,113 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     
+    /**
+     * 마지막 사용자 메시지를 다시 전송 (새로고침)
+     */
+    fun refreshLastMessage() {
+        val currentSessionId = _activeSessionId.value
+        if (currentSessionId == null) return
+        
+        val repository = repositories[currentSessionId] ?: return
+        val messages = repository.messages.value
+        
+        // 마지막 사용자 메시지 찾기
+        val lastUserMessage = messages.lastOrNull { it.isUser }
+        if (lastUserMessage == null) return
+        
+        // 마지막 사용자 메시지 이후의 모든 메시지 제거 (AI 응답만 제거)
+        val userMessageIndex = messages.indexOfLast { it.isUser }
+        val messagesToKeep = messages.take(userMessageIndex) // 마지막 사용자 메시지 제외
+        repository.clearMessages()
+        messagesToKeep.forEach { repository.addMessage(it) }
+        updateSessionMessages(currentSessionId, messagesToKeep)
+        
+        // 마지막 사용자 메시지 다시 전송
+        val apiKey = _apiKey.value.trim()
+        val vertexKey = _vertexApiKey.value.trim()
+        val context = getApplication<Application>()
+        
+        if (apiKey.isEmpty()) {
+            repository.addMessage(ChatMessage(
+                content = "API 키가 설정되지 않았습니다.",
+                isUser = false
+            ))
+            updateSessionMessages(currentSessionId, repository.messages.value)
+            return
+        }
+        
+        viewModelScope.launch {
+            // sendMessage는 내부에서 사용자 메시지를 추가하므로,
+            // 마지막 사용자 메시지를 제거한 상태에서 호출하면 중복이 발생하지 않습니다
+            val result = repository.sendMessage(
+                message = lastUserMessage.content,
+                apiKey = apiKey,
+                vertexApiKey = vertexKey,
+                context = context,
+                imageUri = lastUserMessage.imageUri
+            )
+            
+            result.onSuccess { response ->
+                // 간소화된 응답 처리 - ResponseHandler 사용
+                when (val decoded = ResponseCodec.decode(response)) {
+                    is ChatResponse.ImagePickerRequest -> {
+                        if (decoded.message.contains("카카오톡")) {
+                            _kakaoMessage.value = ""
+                            _showKakaoDialog.value = true
+                        } else {
+                            _isPendingImageShare.value = true
+                            _pendingShareMessage.value = lastUserMessage.content
+                            _showImagePicker.value = true
+                        }
+                    }
+                    is ChatResponse.NavigationLink -> {
+                        _mapUrl.value = decoded.deepLink
+                        val linkMessage = ChatMessage(
+                            content = "🗺️ 네이버 지도 길찾기 링크가 생성되었습니다.\n\n[${decoded.deepLink}](${decoded.deepLink})",
+                            isUser = false
+                        )
+                        repository.addMessage(linkMessage)
+                        updateSessionMessages(currentSessionId, repository.messages.value)
+                        _showMapDialog.value = true
+                    }
+                    is ChatResponse.KakaoMessageShare -> {
+                        _kakaoMessage.value = decoded.message
+                        _showKakaoDialog.value = true
+                    }
+                    else -> {
+                        responseHandler.handleResponse(
+                            response = response,
+                            context = context,
+                            repository = repository,
+                            sessionId = currentSessionId,
+                            onSessionUpdate = ::updateSessionMessages,
+                            onShowMapDialog = { url -> 
+                                _mapUrl.value = url
+                                _showMapDialog.value = true
+                            },
+                            onShowImagePicker = {
+                                _isPendingImageShare.value = true
+                                _showImagePicker.value = true
+                            }
+                        )
+                    }
+                }
+            }
+            
+            result.onFailure { error ->
+                println("ERROR: ViewModel refresh error: ${error.message}")
+                repository.addMessage(ChatMessage(
+                    content = "오류가 발생했습니다: ${error.message}",
+                    isUser = false
+                ))
+                updateSessionMessages(currentSessionId, repository.messages.value)
+            }
+        }
+    }
+    
     fun clearApiKey() {
         _apiKey.value = ""
         preferencesManager.clearApiKey()
-    }
-    
-    fun clearVertexApiKey() {
-        _vertexApiKey.value = BuildConfig.VERTEX_API_KEY
-        preferencesManager.clearVertexApiKey()
     }
     
     /**
@@ -986,14 +1067,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun dismissSettings() {
         _showSettings.value = false
-    }
-    
-    fun showApiKeyDialog() {
-        _showApiKeyDialog.value = true
-    }
-    
-    fun dismissApiKeyDialog() {
-        _showApiKeyDialog.value = false
     }
     
     fun toggleMoreMenu() {

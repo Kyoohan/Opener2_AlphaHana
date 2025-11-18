@@ -9,7 +9,6 @@ class PreferencesManager(context: Context) {
     companion object {
         private const val PREFS_NAME = "opener_prefs"
         private const val API_KEY = "api_key"
-        private const val VERTEX_API_KEY = "vertex_api_key"
         private const val FONT_SIZE_SCALE = "font_size_scale"
         private const val HIGH_CONTRAST_MODE = "high_contrast_mode"
         private const val ACCENT_COLOR_PRESET = "accent_color_preset"
@@ -29,18 +28,6 @@ class PreferencesManager(context: Context) {
     
     fun clearApiKey() {
         prefs.edit().remove(API_KEY).apply()
-    }
-    
-    fun saveVertexApiKey(apiKey: String) {
-        prefs.edit().putString(VERTEX_API_KEY, apiKey).apply()
-    }
-    
-    fun getVertexApiKey(): String? {
-        return prefs.getString(VERTEX_API_KEY, null)
-    }
-    
-    fun clearVertexApiKey() {
-        prefs.edit().remove(VERTEX_API_KEY).apply()
     }
     
     // 글자 크기 설정
